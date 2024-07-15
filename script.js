@@ -11,27 +11,42 @@ async function getEvents(){
             "https://fsa-crud-2aa9294fe819.herokuapp.com/api/2109-CPU-RM-WEB-PT/events"
         );
         console.log(res);
-        const json = await res.json()
-        return json.data
-    }catch(err) {
-        console.log(err)
+        const json = await res.json();
+        return json.data;
+    } catch(err) {
+        console.log(err);
     }
 }
 
-
-async function render(){
-
-    const events = await getEvents();
-    console.log(events);
-    const eventsHTML = events.map((event)=>{{
-        const eventContainer = document.createElement("div");
-        const eventParagraph = document.createElement("p");
-        eventParagraph.innerText = `${event.name} ${event.description} ${event.location} ${event.data}`;
-        deleteButton.innerText = "Delete";
-        eventContainer.appendChild(eventParagraph)
-        eventConatiner.appendChild(deleteButton);
-        return eventContainer;
-    }});
+function createEventsHTML(events, container) {
+  const eventsHTML = events.map((event) => {
+    const eventContainer = document.createElement("div");
+    const eventParagraph = document.createElement("p");
+    eventParagraph.innerText = `${event.name} ${event.desricption} ${event.location} ${event.date}`;
+    const deleteButton = document.createElement("button");
+    deleteButton.innerText = "Delete";
+    deleteButton.addEventListener("click", async function () {
+      try {
+        const res = await fetch(
+          `https://fsa-crud-2aa9294fe819.herokuapp.com/api/2109-CPU-RM-WEB-PT/events/${event.id}`,
+          {
+            method: "DELETE",
+          }
+        );
+        console.log(res);
+        if (res.status === 204) {
+          alert("deleted sucessfully");
+          render();
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    });
+    eventContainer.appendChild(eventParagraph);
+    eventContainer.appendChild(deleteButton);
+    return eventContainer;
+  });
+  container.replaceChildren(...eventsHTML);
 }
 
 async function createEvent(event) {
@@ -60,18 +75,13 @@ newPartyForm.addEventListener("submit", async function (e) {
     const newParty = {
         name: partyName.value,
         description: partyDescription.value,
-        locatoin: partyLocation.value,
+        location: partyLocation.value,
         date: new Date(partyDate.value).toISOString(),
     };
-    const result = await createEvent (newParty);
-    console.log(result);
+    await createEvent (newParty);
+    newPartyForm.reset;
 
-}
-);
-
-
-
-container.replaceChildren(...eventsHTML);
+});
 
 async function render() {
     const events = await getEvents();
